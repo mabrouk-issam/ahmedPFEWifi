@@ -1,0 +1,181 @@
+* ajouter dans le main
+    #include <WiFi.h>
+    #include <WiFiClient.h>
+* ajouter les lignes :
+    #define WIFI_SSID "Wokwi-GUEST"
+    #define WIFI_PASSWORD ""
+    // Defining the WiFi channel speeds up the connection:
+    #define WIFI_CHANNEL 6
+    AsyncWebServer server(80);
+
+
+* télécharger la librairie ESPAsyncWebSrv-1.2.9.zip depuis le site: https://www.arduinolibraries.info/libraries/esp-async-web-srv
+* la décompresser et la mettre dans le dossier lib 
+
+* ajouter les lignes suivantes:
+
+    // Structure de configuration
+    struct Parametre {
+    const char* nom;
+    int valeur;
+    };
+
+    Parametre config[] = {
+    {"Pas en mm pour moteur X", 10},
+    };
+
+    const int NB_PARAMS = sizeof(config) / sizeof(config[0]);
+
+*Ajouter la déclaration void initialisationWifi();
+* Ajouter au setup, l'appel à la fonction initialisationWifi();
+
+* Ajouter la fonction void initialisationWifi()
+    void initialisationWifi(){
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL);
+        Serial.print("Connecting to WiFi ");
+        Serial.print(WIFI_SSID);
+        // Wait for connection
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(100);
+            Serial.print(".");
+        }
+        Serial.println(" Connected!");
+
+        Serial.print("IP address: ");
+        Serial.println(WiFi.localIP());
+        // Page HTML (formulaire)
+        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+            String html = R"rawliteral(
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Configuration</title>
+                <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f7f7f7;
+                    padding: 20px;
+                }
+                h2 {
+                    color: #333;
+                }
+                form {
+                    max-width: 400px;
+                    margin: auto;
+                    background: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+                label {
+                    display: block;
+                    margin-top: 15px;
+                    font-weight: bold;
+                }
+                input[type='number'] {
+                    width: 100%;
+                    padding: 8px;
+                    margin-top: 5px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                }
+                input[type='submit'] {
+                    margin-top: 20px;
+                    width: 100%;
+                    padding: 10px;
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+                input[type='submit']:hover {
+                    background-color: #45a049;
+                }
+                </style>
+            </head>
+            <body>
+                <h2>Configuration du système</h2>
+                <form action="/save" method="get">
+            )rawliteral";
+        
+            for (int i = 0; i < NB_PARAMS; ++i) {
+            html += "<label for='";
+            html += config[i].nom;
+            html += "'>";
+            html += config[i].nom;
+            html += "</label><input type='number' name='";
+            html += config[i].nom;
+            html += "' value='";
+            html += config[i].valeur;
+            html += "'>\n";
+            }
+        
+            html += R"rawliteral(
+                <input type="submit" value="Enregistrer">
+                </form>
+            </body>
+            </html>
+            )rawliteral";
+        
+            request->send(200, "text/html", html);
+        });
+        
+
+        // Traitement des données reçues
+        server.on("/save", HTTP_GET, [](AsyncWebServerRequest *request){
+            
+            for (int i = 0; i < NB_PARAMS; ++i) {
+            if (request->hasParam(config[i].nom)) {
+                config[i].valeur = request->getParam(config[i].nom)->value().toInt();
+            }
+            }
+            //nbre de pas par mm pour chaque moteur (prévoir de les acquerrer depuis l'interface web)
+            nbre_pas_par_mm_pour_stepperX=config[0].valeur;
+            nbre_pas_par_mm_pour_stepperY=config[1].valeur;
+            nbre_pas_par_mm_pour_stepperZ=config[2].valeur;
+
+            //dimension de la matrice A
+            MA=config[3].valeur;
+            NA= config[4].valeur;    
+
+
+            //dimension de la matrice B
+            MB=config[5].valeur ;
+            NB= config[6].valeur;
+            //les pas entre deux positions pour A et B en mm (prévoir de les calculer en pas) (prévoir de les acquérir depuis l'interface web)
+            pasAX=config[7].valeur;
+            pasAY=config[8].valeur;
+            pasBX=config[9].valeur;
+            pasBY=  config[10].valeur;
+
+            //positions initiales pour les deux matrices en mm(prévoir de les calculer en pas) (prévoir de les acquérir depuis l'interface web)
+            posAX = config[11].valeur;
+            posAY= config[12].valeur;
+            posBX  = config[13].valeur;
+            posBY = config[14].valeur;
+            Serial.println("La nouvelle valeur de test est :");
+            Serial.println(config[15].valeur);
+            
+            matriceA = std::vector<std::vector<int>>(MA, std::vector<int>(NA));
+            matriceB = std::vector<std::vector<int>>(MB, std::vector<int>(NB));
+
+            initialisationMatrices();
+
+            Serial.println("== Configuration mise à jour ==");
+            for (int i = 0; i < NB_PARAMS; ++i) {
+            Serial.print( config[i].nom );
+            Serial.print(": ");
+            Serial.println( config[i].valeur );
+
+            }
+        
+            request->send(200, "text/plain", "Configuration enregistrée !");
+        });
+        server.begin();
+        
+        }
+
