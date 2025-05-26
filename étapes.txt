@@ -1,6 +1,7 @@
 * ajouter dans le main
     #include <WiFi.h>
     #include <WiFiClient.h>
+
 * ajouter les lignes :
     #define WIFI_SSID "Wokwi-GUEST"
     #define WIFI_PASSWORD ""
@@ -11,6 +12,8 @@
 
 * télécharger la librairie ESPAsyncWebSrv-1.2.9.zip depuis le site: https://www.arduinolibraries.info/libraries/esp-async-web-srv
 * la décompresser et la mettre dans le dossier lib 
+* ajouter #include <ESPAsyncWebSrv.h>
+
 
 * ajouter les lignes suivantes:
 
@@ -133,38 +136,7 @@
                 config[i].valeur = request->getParam(config[i].nom)->value().toInt();
             }
             }
-            //nbre de pas par mm pour chaque moteur (prévoir de les acquerrer depuis l'interface web)
-            nbre_pas_par_mm_pour_stepperX=config[0].valeur;
-            nbre_pas_par_mm_pour_stepperY=config[1].valeur;
-            nbre_pas_par_mm_pour_stepperZ=config[2].valeur;
-
-            //dimension de la matrice A
-            MA=config[3].valeur;
-            NA= config[4].valeur;    
-
-
-            //dimension de la matrice B
-            MB=config[5].valeur ;
-            NB= config[6].valeur;
-            //les pas entre deux positions pour A et B en mm (prévoir de les calculer en pas) (prévoir de les acquérir depuis l'interface web)
-            pasAX=config[7].valeur;
-            pasAY=config[8].valeur;
-            pasBX=config[9].valeur;
-            pasBY=  config[10].valeur;
-
-            //positions initiales pour les deux matrices en mm(prévoir de les calculer en pas) (prévoir de les acquérir depuis l'interface web)
-            posAX = config[11].valeur;
-            posAY= config[12].valeur;
-            posBX  = config[13].valeur;
-            posBY = config[14].valeur;
-            Serial.println("La nouvelle valeur de test est :");
-            Serial.println(config[15].valeur);
-            
-            matriceA = std::vector<std::vector<int>>(MA, std::vector<int>(NA));
-            matriceB = std::vector<std::vector<int>>(MB, std::vector<int>(NB));
-
-            initialisationMatrices();
-
+           
             Serial.println("== Configuration mise à jour ==");
             for (int i = 0; i < NB_PARAMS; ++i) {
             Serial.print( config[i].nom );
@@ -178,4 +150,9 @@
         server.begin();
         
         }
+
+* aller à la variable à configurer à partir de la page web et supprimer toute initialisation.
+* affecter à la variable la valeur config[i].valeur, avec i la position de la variable dans la structure config.
+* tester le programme.
+
 

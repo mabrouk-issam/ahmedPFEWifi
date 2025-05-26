@@ -10,19 +10,20 @@
 #define WIFI_PASSWORD ""
 // Defining the WiFi channel speeds up the connection:
 #define WIFI_CHANNEL 6
-AsyncWebServer server(80); 
+AsyncWebServer server(80);
 
-  // Structure de configuration
-  struct Parametre {
-    const char* nom;
-    int valeur;
-    };
+// Structure de configuration
+struct Parametre {
+  const char* nom;
+  int valeur;
+};
 
-    Parametre config[] = {
-    {"bouchons Par Boite B",2},
-    };
+Parametre config[] = {
+  {"bouchonsParBoiteB", 1},
+};
 
-    const int NB_PARAMS = sizeof(config) / sizeof(config[0]);
+const int NB_PARAMS = sizeof(config) / sizeof(config[0]);
+
 
 // === Définition des broches ===
 #define X_STEP_PIN         2
@@ -60,7 +61,7 @@ const float pas_mm = 1.97;
 const int MAX_POS = 100;
 int positionsB[MAX_POS][2];
 int totalInsertions = 0;
-int bouchonsParBoiteB;
+int bouchonsParBoiteB ;
 int indexA = 0, indexB = 0;
 
 // === États système ===
